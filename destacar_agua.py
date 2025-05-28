@@ -1,51 +1,33 @@
-import torch
-import torchvision.transforms as T
-from PIL import Image
-import matplotlib.pyplot as plt
+import cv2
 import numpy as np
+import matplotlib.pyplot as plt
+from skimage.filters import threshold_otsu
 
-# Carregar imagem de satélite
-image_path = "imagem_satelite.jpeg"  # troque pelo seu arquivo
-image = Image.open(image_path).convert("RGB")
+# Carregar a imagem
+imagem = cv2.imread(r"C:\Users\Arthur\Downloads\projeto_destacar_rios\imagem_satelite.jpeg")
 
-# Pré-processamento
-transform = T.Compose([
-    T.Resize(520),
-    T.ToTensor(),
-    T.Normalize(mean=[0.485, 0.456, 0.406],
-                std=[0.229, 0.224, 0.225])
-])
+imagem_rgb = cv2.cvtColor(imagem, cv2.COLOR_BGR2RGB)
 
-input_tensor = transform(image).unsqueeze(0)
+# Converter para tons de cinza
+gray = cv2.cvtColor(imagem, cv2.COLOR_BGR2GRAY)
 
-# Carregar modelo DeepLabv3 pré-treinado
-model = torch.hub.load('pytorch/vision:v0.14.0', 'deeplabv3_resnet101', pretrained=True)
-model.eval()
+# Aplicar filtro de suavização
+blur = cv2.GaussianBlur(gray, (5, 5), 0)
 
-# Segmentar imagem
-with torch.no_grad():
-    output = model(input_tensor)['out'][0]
-output_predictions = output.argmax(0).byte().cpu().numpy()
+# Realçar os rios com threshold adaptativo
+thresh_val = threshold_otsu(blur)
+mascara = blur < thresh_val  # regiões mais escuras (rios)
 
-# Classe 'água' é normalmente 21 no COCO-Stuff (podemos ajustar se necessário)
-WATER_CLASS_INDEX = 21
+# Criar máscara colorida azul
+mascara_colorida = np.zeros_like(imagem_rgb)
+mascara_colorida[mascara] = [0, 255, 255]  # ciano
 
-# Criar máscara binária para água
-mask = output_predictions == WATER_CLASS_INDEX
+# Combinar com imagem original
+imagem_destacada = cv2.addWeighted(imagem_rgb, 1, mascara_colorida, 0.7, 0)
 
-# Converter para imagem colorida com destaque azul
-image_np = np.array(image)
-highlight = image_np.copy()
-highlight[~mask] = 0  # Zera tudo que não for água
-
-# Mostrar resultados
-plt.figure(figsize=(12, 6))
-plt.subplot(1, 2, 1)
-plt.title("Imagem Original")
-plt.imshow(image_np)
-
-plt.subplot(1, 2, 2)
-plt.title("Água Detectada (DeepLabv3)")
-plt.imshow(highlight)
+# Exibir
+plt.figure(figsize=(10, 6))
+plt.imshow(imagem_destacada)
+plt.title("Rios destacados em azul sobre imagem original")
+plt.axis('off')
 plt.show()
-
