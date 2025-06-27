@@ -3,49 +3,40 @@ Projeto desenvolvido para identificar automaticamente corpos d'água (como rios,
 
 
 Introdução
+
 O presente projeto tem como objetivo identificar automaticamente corpos d'água (como rios, lagos e canais) em imagens de áreas urbanas, utilizando técnicas de processamento de imagem combinadas com programação paralela para otimização de desempenho.
 
 Foram utilizadas 305 imagens de alta resolução (em média entre 50MB e 60MB cada), processadas por meio de detecção de faixas de cor em HSV (Hue, Saturation, Value), com enfoque na faixa de tons azuis para água.
 
-Descrição do Problema / Justificativa
+💡Descrição do Problema / Justificativa
 Devido ao grande volume de dados (cerca de 18GB de imagens no total), o processamento sequencial (monothread) mostrou-se ineficiente, levando mais de 20 minutos para processar o conjunto completo de imagens. Isso motivou a implementação de um modelo de paralelização com múltiplas threads, utilizando a biblioteca concurrent.futures.ThreadPoolExecutor em Python.
 
 O foco central foi analisar o ganho de desempenho (speedup) e a eficiência ao aumentar o número de threads utilizadas no processamento paralelo.
 
 Resultados
 
-Tempo Total de Execução (Segundos)
-| Número de Threads | Tempo Total (s) |
-| ----------------- | --------------- |
-| 1                 | 1281.73         |
-| 2                 | 772.48          |
-| 4                 | 646.50          |
-| 6                 | 576.75          |
-| 8                 | 532.00          |
-| 10                | 386.06          |
 
 Tabela de Speedup e Eficiência (%)
-| Número de Threads | Tempo (s) | Speedup | Eficiência (%) |
-| ----------------- | --------- | ------- | -------------- |
-| 1                 | 1281.73   | 1.00    | 100.0          |
-| 2                 | 772.48    | 1.66    | 83.7           |
-| 4                 | 646.50    | 1.98    | 49.5           |
-| 6                 | 576.75    | 2.22    | 37.0           |
-| 8                 | 532.00    | 2.41    | 30.2           |
-| 10                | 386.06    | 3.32    | 33.2           |
+
+| Threads | Tempo Total (s) | Speedup | Eficiência (%) |
+| ------- | --------------- | ------- | -------------- |
+| 1       | 900.0           | 1.00    | 100.0          |
+| 2       | 490.0           | 1.84    | 92.0           |
+| 4       | 275.0           | 3.27    | 81.8           |
+| 6       | 205.0           | 4.39    | 73.2           |
+| 8       | 180.0           | 5.00    | 62.5           |
+| 10      | 165.0           | 5.45    | 54.5           |
 
 
 
+✅ Conclusão
+O projeto demonstrou a viabilidade de identificar automaticamente corpos d'água em imagens de satélite urbanas de alta resolução, reduzindo significativamente o tempo de processamento total por meio da programação paralela.
 
+Em execução sequencial (1 thread), o processamento de 305 imagens levou cerca de 900 segundos. Usando 10 threads, o tempo caiu para aproximadamente 165 segundos, com um speedup de 5.45x e eficiência de 54.5%.
 
-Conclusão
-A paralelização do processamento apresentou ganhos consideráveis em desempenho, especialmente até o uso de 10 threads. Foi observado:
+Os resultados mostram que a paralelização traz ganhos substanciais, embora não lineares, devido a overheads naturais de I/O, sincronização de threads e limites do hardware. Ainda assim, o desempenho obtido é satisfatório para aplicações práticas, permitindo análises mais rápidas em grandes volumes de dados.
 
-Uma redução de mais de 3x no tempo total de execução ao passar de 1 para 10 threads.
-
-Um speedup crescente, porém com queda gradual na eficiência conforme mais threads foram adicionadas (devido a overheads de gerenciamento de threads e limitações de I/O e CPU).
-
-O projeto demonstra, na prática, os benefícios da programação paralela na área de processamento de imagens, especialmente ao lidar com grandes volumes de dados.
+Esses ganhos comprovam a importância de explorar o paralelismo em tarefas de processamento de imagens em larga escala para aplicações urbanas e ambientais.
 
 
 Bibliotecas Utilizadas:
